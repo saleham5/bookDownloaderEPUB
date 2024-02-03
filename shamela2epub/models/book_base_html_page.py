@@ -1,5 +1,5 @@
 from bs4 import BeautifulSoup, Tag
-from http import get_url_text  # Import the get_url_text function from http.py
+from shamela2epub.misc.http import get_url_text  # Import the get_url_text function from http.py
 
 class BookBaseHTMLPage:
     BOOK_PAGE_CONTENT_SELECTOR = "div.nass"
