@@ -1,21 +1,28 @@
 import logging
-
 from gevent import sleep
 from httpx import codes, get
 
 logging.getLogger("httpx").setLevel(logging.WARNING)
 
-TIME_OUT = 25
-MAX_RETRIES = 5
+TIME_OUT = 500
+MAX_RETRIES = 30
 
 
 def get_url_text(url: str) -> str:
-    response = get(url, timeout=TIME_OUT)
-    if response.status_code != codes.OK:
-        # retry getting the page 5 times in case the server is down
-        retries = 0
-        while response.status_code != codes.OK and retries < MAX_RETRIES:
-            sleep(5)
+    retries = 0
+    while True:
+        try:
             response = get(url, timeout=TIME_OUT)
-            retries += 1
-    return response.text or ""
+            if response.status_code == codes.OK:
+                return response.text or ""
+        except Exception as e:
+            # Log the exception if needed
+            logging.error(f"Error fetching URL: {url}. Exception: {e}")
+
+        # Exponential backoff
+        if retries >= MAX_RETRIES:
+            break  # Break out of the loop if maximum retries reached
+        sleep(2 ** retries)
+        retries += 1
+
+    return ""
